@@ -1,0 +1,1225 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador Avanzado de Energía Mecánica y Potencial</title>
+    <!-- Tailwind CSS for modern academic styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- KaTeX for high-fidelity LaTeX rendering -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body);"></script>
+    <!-- FontAwesome for professional UI icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Outfit & JetBrains Mono -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: #f7f9f6;
+        }
+        /* Paleta Institucional Verde Oliva UCCuyo */
+        .text-accent { color: #436600; }
+        .bg-accent { background-color: #436600; }
+        .bg-accent-hover:hover { background-color: #324d00; }
+        .bg-accent-light { background-color: #f1f6eb; }
+        .border-accent { border-color: #436600; }
+
+        .text-primary { color: #436600; }
+        .bg-primary { background-color: #436600; }
+        .bg-primary-dark { background-color: #324d00; }
+        .border-primary { border-color: #436600; }
+        
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between text-slate-800">
+
+    <!-- Cabecera Institucional UCCuyo -->
+    <header class="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 py-3.5 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-lg bg-accent flex items-center justify-center text-white font-bold text-xl shadow-md">
+                    F
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold text-gray-800 tracking-wide uppercase">FÍSICA MÉDICA Y BIOMECÁNICA</h1>
+                    <p class="text-xs text-gray-500 font-semibold">PreMédico (Facultad de Cs. Médicas - UCCuyo)</p>
+                </div>
+            </div>
+            <!-- Botón Guía de Uso -->
+            <button onclick="openTutorial()" class="flex items-center gap-1.5 px-3 py-1.5 bg-accent text-white text-xs font-semibold rounded-lg shadow-sm hover:opacity-90 transition">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                Guía de Uso
+            </button>
+        </div>
+    </header>
+
+    <!-- Contenido Principal con Menú Lateral -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 flex flex-col lg:flex-row gap-6">
+        
+        <!-- Menú de Navegación Lateral -->
+        <nav class="w-full lg:w-64 flex flex-row lg:flex-col gap-2 bg-white p-3 rounded-2xl shadow-sm border border-gray-100 overflow-x-auto lg:overflow-x-visible whitespace-nowrap lg:whitespace-normal sticky top-20 h-fit">
+            <button onclick="switchModule('gravitational')" id="btn-gravitational" class="bg-accent text-white flex-1 lg:flex-none text-left py-2.5 px-4 rounded-xl text-sm font-semibold transition shadow-sm">
+                1. U. Gravitacional & Trabajo
+            </button>
+            <button onclick="switchModule('conservation')" id="btn-conservation" class="text-gray-700 hover:bg-gray-100 flex-1 lg:flex-none text-left py-2.5 px-4 rounded-xl text-sm font-medium transition">
+                2. Conservación Mecánica
+            </button>
+            <button onclick="switchModule('elastic')" id="btn-elastic" class="text-gray-700 hover:bg-gray-100 flex-1 lg:flex-none text-left py-2.5 px-4 rounded-xl text-sm font-medium transition">
+                3. U. Elástica & Parábola
+            </button>
+        </nav>
+
+        <!-- Área de Trabajo Principal (Dos Columnas: Parámetros y Visualizador) -->
+        <div class="flex-1 grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
+            
+            <!-- Columna Izquierda: Teoría y Controles (5 cols en XL) -->
+            <section class="xl:col-span-5 flex flex-col space-y-5">
+                
+                <!-- Tarjeta de Marco Teórico y Fórmulas -->
+                <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm space-y-3">
+                    <div class="flex items-center justify-between pb-2 border-b border-gray-100">
+                        <h2 class="text-xs font-bold tracking-wider uppercase text-accent flex items-center gap-2">
+                            <i class="fa-solid fa-graduation-cap"></i> Fundamento Físico-Matemático
+                        </h2>
+                        <span id="theory-badge" class="text-[11px] bg-accent-light text-accent px-2.5 py-0.5 rounded-full font-semibold border border-accent/20">U. Gravitacional</span>
+                    </div>
+                    
+                    <div id="theory-content" class="text-xs text-gray-600 leading-relaxed space-y-2.5">
+                        <!-- Inyección dinámica -->
+                    </div>
+                </div>
+
+                <!-- Tarjeta de Controles de Entrada -->
+                <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm space-y-4">
+                    <h2 class="text-xs font-bold tracking-wider uppercase text-accent flex items-center gap-2">
+                        <i class="fa-solid fa-sliders"></i> Parámetros de Simulación
+                    </h2>
+
+                    <div id="controls-container" class="space-y-3.5">
+                        <!-- Inyección dinámica según módulo -->
+                    </div>
+
+                    <!-- Botones de Acción -->
+                    <div class="pt-3 border-t border-gray-100 flex items-center gap-3">
+                        <button onclick="toggleSimulation()" id="sim-play-btn" class="flex-1 bg-accent hover:bg-accent-hover text-white font-semibold py-2.5 px-4 rounded-xl shadow-sm transition flex items-center justify-center gap-2 text-xs">
+                            <i id="play-icon" class="fa-solid fa-play"></i> <span id="play-text">Iniciar Simulación</span>
+                        </button>
+                        <button onclick="resetSimulation()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-2.5 px-4 rounded-xl transition flex items-center justify-center gap-2 text-xs">
+                            <i class="fa-solid fa-rotate-right"></i> Reiniciar
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Tarjeta de Métricas en Tiempo Real -->
+                <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm space-y-3">
+                    <h2 class="text-xs font-bold tracking-wider uppercase text-gray-700 flex items-center gap-2">
+                        <i class="fa-solid fa-gauge-high text-accent"></i> Variables Energéticas Dinámicas
+                    </h2>
+                    <div id="metrics-container" class="grid grid-cols-2 gap-3">
+                        <!-- Métricas dinámicas -->
+                    </div>
+                </div>
+
+            </section>
+
+            <!-- Columna Derecha: Canvas Interactivo y Feedback Biomecánico (7 cols en XL) -->
+            <section class="xl:col-span-7 flex flex-col space-y-5">
+                
+                <!-- Contenedor del Canvas -->
+                <div class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm flex flex-col space-y-3">
+                    <div class="flex justify-between items-center px-1">
+                        <span id="canvas-title" class="text-xs font-bold text-gray-800 flex items-center gap-2">
+                            <i class="fa-solid fa-desktop text-accent"></i> Visor Gráfico Interactivo
+                        </span>
+                        <div class="flex items-center gap-1.5 text-[11px] text-gray-500 font-medium">
+                            <span class="inline-block w-2 h-2 rounded-full bg-accent animate-pulse"></span>
+                            Tiempo Real (60 FPS)
+                        </div>
+                    </div>
+
+                    <!-- Lienzo Canvas -->
+                    <div class="relative w-full aspect-[4/3] bg-slate-900 rounded-xl overflow-hidden shadow-inner border border-slate-800">
+                        <canvas id="simCanvas" class="w-full h-full cursor-grab active:cursor-grabbing"></canvas>
+                        <div id="canvas-overlay-tip" class="absolute bottom-3 left-3 bg-slate-900/90 backdrop-blur border border-slate-700 text-[11px] text-slate-300 px-3 py-1.5 rounded-lg pointer-events-none shadow-md">
+                            💡 Arrastre verticalmente el objeto o modifique los deslizadores.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tarjeta de Diagnóstico Biomecánico & Aplicación Médica -->
+                <div class="bg-accent-light border border-accent/20 rounded-2xl p-5 shadow-sm space-y-2">
+                    <h3 class="text-xs font-bold uppercase tracking-wide text-accent flex items-center gap-2">
+                        <i class="fa-solid fa-stethoscope"></i> Correlación Biomecánica y Clínica Médica
+                    </h3>
+                    <p id="pedagogical-feedback" class="text-xs text-gray-700 leading-relaxed font-normal">
+                        Cargando análisis dinámico del estado físico...
+                    </p>
+                </div>
+
+            </section>
+
+        </div>
+    </main>
+
+    <!-- Modal Guía de Uso del Simulador -->
+    <div id="tutorial-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto custom-scroll">
+            <div class="flex items-center justify-between border-b pb-3">
+                <div class="flex items-center gap-2">
+                    <span class="w-3 h-3 rounded-full bg-accent"></span>
+                    <h3 class="text-base font-bold text-gray-800 uppercase tracking-wide">Guía de Uso del Simulador de Física</h3>
+                </div>
+                <button onclick="closeTutorial()" class="text-gray-400 hover:text-gray-600 text-xl font-bold">&times;</button>
+            </div>
+            
+            <div class="space-y-4 text-xs text-gray-600 leading-relaxed">
+                <div class="bg-gray-50 p-3.5 rounded-xl border border-gray-100">
+                    <span class="font-bold text-gray-800 text-xs block mb-1">Propósito Pedagógico (Curso de Ingreso a Medicina - UCCuyo):</span>
+                    Este simulador interactivo permite consolidar los conceptos clave de mecánica clásica aplicados a la fisiología y biomecánica médica: la energía potencial gravitacional y el trabajo del peso con análisis riguroso de signos; el principio de conservación de la energía mecánica total ($E_{\text{mec}} = K + U = \text{constante}$) aplicado a saltos y proyectiles; y la energía potencial elástica cuadrática ($U_{\text{el}} = \frac{1}{2} k x^2$) con su gráfica parabólica en tiempo real vinculada a la viscoelasticidad osteotendinosa.
+                </div>
+
+                <div>
+                    <h4 class="font-bold text-gray-800 text-sm mb-1 text-accent">1. Módulo 1: U. Gravitacional & Trabajo de la Gravedad</h4>
+                    <ul class="list-disc list-inside space-y-1 ml-1 text-gray-600">
+                        <li><strong>Cálculo Teórico en LaTeX:</strong> Evaluación inmediata de $U_{\text{grav}} = m \cdot g \cdot y$ modulando masa ($m$), cota de altura ($y$) y campo gravitatorio ($g$).</li>
+                        <li><strong>Análisis Dual de Cotas ($y_1$ e $y_2$):</strong> Ajuste interactivo de la cota inicial ($y_1$) y cota final ($y_2$) con cálculo de $\Delta y$, $\Delta U_{\text{grav}}$ y del trabajo del peso $W_{\text{grav}} = -\Delta U_{\text{grav}}$.</li>
+                        <li><strong>Animación y Criterio de Signos Biomecánico:</strong>
+                            <ul class="list-disc list-inside ml-4 space-y-0.5 text-gray-500">
+                                <li>Al presionar <em>"Iniciar Simulación"</em>, el cuerpo se desplaza continuamente entre $y_1$ e $y_2$.</li>
+                                <li><em>Ascenso ($y_2 > y_1$):</em> $\Delta U > 0 \implies W_{\text{grav}} < 0$ (trabajo resistente que fatiga la musculatura).</li>
+                                <li><em>Descenso ($y_2 < y_1$):</em> $\Delta U < 0 \implies W_{\text{grav}} > 0$ (trabajo motor favorable al movimiento).</li>
+                            </ul>
+                        </li>
+                        <li><strong>Arrastre Directo:</strong> Puede hacer clic y arrastrar la masa verticalmente sobre el Canvas para modificar instantáneamente la altura.</li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="font-bold text-gray-800 text-sm mb-1 text-accent">2. Módulo 2: Conservación de la Energía Mecánica</h4>
+                    <ul class="list-disc list-inside space-y-1 ml-1 text-gray-600">
+                        <li><strong>Ley de Conservación:</strong> Comprobación en tiempo real de $\Delta K = -\Delta U_{\text{grav}}$, verificando que la suma $E_{\text{mec}} = K + U_{\text{grav}}$ permanece invariable (en ausencia de fricción disipativa).</li>
+                        <li><strong>Casos de Estudio Biomecánicos:</strong>
+                            <ul class="list-disc list-inside ml-4 space-y-0.5 text-gray-500">
+                                <li><em>La Saltadora:</em> Modelo antropométrico en fase de despegue y vuelo libre que muestra la transferencia energética articular.</li>
+                                <li><em>Lanzamiento Vertical:</em> Proyectil esférico 3D con trazado de vectores de velocidad instantánea.</li>
+                            </ul>
+                        </li>
+                        <li><strong>Barras de Balance Energético:</strong> Gráfico de barras comparativas en el Canvas que actualiza frame a frame la proporción de $U$, $K$ y la barra constante de $E_{\text{mec}}$, destacando la cúspide donde $v = 0$ y $K = 0$.</li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="font-bold text-gray-800 text-sm mb-1 text-accent">3. Módulo 3: U. Elástica & Parábola Cuadrática</h4>
+                    <ul class="list-disc list-inside space-y-1 ml-1 text-gray-600">
+                        <li><strong>Ley de Hooke:</strong> Manipulación de la constante elástica ($k$) y de la deformación ($x$) en regímenes de compresión ($x < 0$) y tracción/elongación ($x > 0$).</li>
+                        <li><strong>Gráfica Parabólica Continua:</strong> Visor simultáneo en Canvas que traza la curva parabólica simétrica $U_{\text{el}} = \frac{1}{2} k x^2$ junto al punto de operación $(x, U_{\text{el}})$ en vivo.</li>
+                        <li><strong>Propiedad Cuadrática:</strong> Ilustra que duplicar el desplazamiento ($2x$) cuatriplica la energía acumulada ($4U$), y que la energía elástica es estrictamente positiva ($U_{\text{el}} \ge 0$).</li>
+                        <li><strong>Aplicación Médica:</strong> Almacenamiento elástico pasivo en el tendón de Aquiles y ligamentos durante el apoyo y despegue de la marcha humana.</li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="font-bold text-gray-800 text-sm mb-1 text-accent">4. Controles y Asistencia de Estudio</h4>
+                    <ul class="list-disc list-inside space-y-1 ml-1 text-gray-600">
+                        <li><strong>Botones de Reproducción:</strong> <em>Iniciar/Pausar Simulación</em> y <em>Reiniciar</em> para restaurar los valores iniciales.</li>
+                        <li><strong>Tarjeta de Diagnóstico Clínico-Físico:</strong> Panel inferior con explicaciones cualitativas automáticas adaptadas al contexto médico según los valores ingresados.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="pt-3 border-t flex justify-end">
+                <button onclick="closeTutorial()" class="px-5 py-2 bg-accent text-white text-xs font-semibold rounded-xl hover:bg-accent-hover transition shadow-sm">
+                    Entendido
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pie de Página Institucional -->
+    <footer class="bg-white border-t border-gray-200 py-4 mt-8 text-center text-xs text-gray-500">
+        Desarrollado por vesalio - Todos los derechos reservados
+    </footer>
+
+    <!-- Motor JavaScript de Simulación -->
+    <script>
+        // Estado Global
+        let currentModule = 'gravitational'; // 'gravitational', 'conservation', 'elastic'
+        let isRunning = false;
+        let animationFrameId = null;
+        let simTime = 0;
+
+        const state = {
+            mass: 2.0,            // kg
+            gravity: 9.8,         // m/s^2
+            height: 6.0,          // m (altura actual o y2)
+            height1: 2.0,         // m (altura inicial y1 para trabajo)
+            maxHeight: 10.0,      // m
+            velocity: 0.0,        // m/s
+            initialVelocity: 8.0, // m/s
+            springConstant: 150,  // N/m
+            displacement: 0.25,   // m (-0.45 a 0.45)
+            scenarioType: 'jump'  // 'jump' o 'projectile'
+        };
+
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width * window.devicePixelRatio;
+            canvas.height = rect.height * window.devicePixelRatio;
+            ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+            drawSimulation();
+        }
+        window.addEventListener('resize', resizeCanvas);
+
+        function openTutorial() {
+            document.getElementById('tutorial-modal').classList.remove('hidden');
+        }
+        function closeTutorial() {
+            document.getElementById('tutorial-modal').classList.add('hidden');
+        }
+
+        function switchModule(moduleName) {
+            currentModule = moduleName;
+            isRunning = false;
+            simTime = 0;
+
+            const playBtn = document.getElementById('sim-play-btn');
+            playBtn.className = "flex-1 bg-accent hover:bg-accent-hover text-white font-semibold py-2.5 px-4 rounded-xl shadow-sm transition flex items-center justify-center gap-2 text-xs";
+            document.getElementById('play-icon').className = "fa-solid fa-play";
+            document.getElementById('play-text').textContent = "Iniciar Simulación";
+            if (animationFrameId) cancelAnimationFrame(animationFrameId);
+
+            ['gravitational', 'conservation', 'elastic'].forEach(m => {
+                const btn = document.getElementById(`btn-${m}`);
+                if (m === moduleName) {
+                    btn.className = "bg-accent text-white flex-1 lg:flex-none text-left py-2.5 px-4 rounded-xl text-sm font-semibold transition shadow-sm";
+                } else {
+                    btn.className = "text-gray-700 hover:bg-gray-100 flex-1 lg:flex-none text-left py-2.5 px-4 rounded-xl text-sm font-medium transition";
+                }
+            });
+
+            if (moduleName === 'gravitational') {
+                state.height1 = 2.0;
+                state.height = 6.0;
+                state.velocity = 0.0;
+            } else if (moduleName === 'conservation') {
+                state.height = 0.0;
+                state.velocity = state.initialVelocity;
+            } else if (moduleName === 'elastic') {
+                state.displacement = 0.25;
+            }
+
+            updateTheoryAndControls();
+            renderKaTeX();
+            drawSimulation();
+        }
+
+        function updateTheoryAndControls() {
+            const theoryContainer = document.getElementById('theory-content');
+            const controlsContainer = document.getElementById('controls-container');
+            const theoryBadge = document.getElementById('theory-badge');
+            const canvasTip = document.getElementById('canvas-overlay-tip');
+            const canvasTitle = document.getElementById('canvas-title');
+
+            if (currentModule === 'gravitational') {
+                theoryBadge.textContent = "U. Gravitacional & Trabajo";
+                canvasTitle.innerHTML = `<i class="fa-solid fa-earth-americas text-accent"></i> Energía Potencial Gravitacional y Trabajo del Peso`;
+                canvasTip.innerHTML = `💡 Arrastre la masa $y_2$ verticalmente o cambie los controles para evaluar el signo del trabajo $W_{\\text{grav}}$.`;
+
+                theoryContainer.innerHTML = `
+                    <p>La <strong>energía potencial gravitacional</strong> ($U_{\\text{grav}}$) representa la energía acumulada debido a la altura $y$ sobre el nivel de referencia:</p>
+                    <div class="bg-gray-50 p-2 rounded-xl border border-gray-200 text-center font-mono text-accent font-semibold">
+                        $$U_{\\text{grav}} = m \\cdot g \\cdot y$$
+                    </div>
+                    <p>El trabajo realizado por la fuerza peso al desplazarse entre $y_1$ e $y_2$ es el opuesto a la variación de energía potencial:</p>
+                    <div class="bg-gray-50 p-2 rounded-xl border border-gray-200 text-center font-mono text-accent font-semibold">
+                        $$W_{\\text{grav}} = -\\Delta U_{\\text{grav}} = -(U_{\\text{grav},2} - U_{\\text{grav},1})$$
+                    </div>
+                    <div class="p-2 rounded-lg bg-accent-light/50 border border-accent/20 text-[11px]">
+                        <strong>Criterio de Signos Biomecánico:</strong><br>
+                        • <strong>Ascenso ($y_2 > y_1$):</strong> $\\Delta U > 0 \\implies W_{\\text{grav}} < 0$ (Trabajo resistente, requiere gasto muscular metabólico).<br>
+                        • <strong>Descenso ($y_2 < y_1$):</strong> $\\Delta U < 0 \\implies W_{\\text{grav}} > 0$ (Trabajo motor, la gravedad favorece la aceleración).
+                    </div>
+                `;
+
+                controlsContainer.innerHTML = `
+                    <div>
+                        <div class="flex justify-between text-xs mb-1 font-semibold text-gray-700">
+                            <span>Masa Corporal ($m$):</span>
+                            <span id="val-mass" class="font-mono text-accent">${state.mass.toFixed(1)} kg</span>
+                        </div>
+                        <input type="range" min="0.5" max="10.0" step="0.1" value="${state.mass}" oninput="updateParam('mass', this.value)" class="w-full accent-[#436600] bg-gray-200 rounded-lg h-1.5 cursor-pointer">
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-xs mb-1 font-semibold text-gray-700">
+                            <span>Altura Inicial ($y_1$):</span>
+                            <span id="val-h1" class="font-mono text-gray-600">${state.height1.toFixed(1)} m</span>
+                        </div>
+                        <input type="range" min="0.0" max="10.0" step="0.1" value="${state.height1}" oninput="updateParam('height1', this.value)" class="w-full accent-gray-500 bg-gray-200 rounded-lg h-1.5 cursor-pointer">
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-xs mb-1 font-semibold text-gray-700">
+                            <span>Altura Final ($y_2$):</span>
+                            <span id="val-height" class="font-mono text-accent">${state.height.toFixed(1)} m</span>
+                        </div>
+                        <input type="range" min="0.0" max="10.0" step="0.1" value="${state.height}" oninput="updateParam('height', this.value)" class="w-full accent-[#436600] bg-gray-200 rounded-lg h-1.5 cursor-pointer">
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-xs mb-1 font-semibold text-gray-700">
+                            <span>Gravedad ($g$):</span>
+                            <span id="val-gravity" class="font-mono text-accent">${state.gravity.toFixed(1)} m/s²</span>
+                        </div>
+                        <input type="range" min="1.6" max="20.0" step="0.1" value="${state.gravity}" oninput="updateParam('gravity', this.value)" class="w-full accent-[#436600] bg-gray-200 rounded-lg h-1.5 cursor-pointer">
+                    </div>
+                `;
+            } else if (currentModule === 'conservation') {
+                theoryBadge.textContent = "Conservación Mecánica";
+                canvasTitle.innerHTML = `<i class="fa-solid fa-chart-line text-accent"></i> Conservación de la Energía Mecánica ($E_{\\text{mec}} = K + U = \\text{cte}$)`;
+                canvasTip.innerHTML = `💡 Inicie la simulación para analizar la transferencia de energía entre $K$ y $U$ durante el movimiento.`;
+
+                theoryContainer.innerHTML = `
+                    <p>En ausencia de resistencia del aire o fuerzas disipativas, la variación de energía cinética es el opuesto exacto del cambio en energía potencial:</p>
+                    <div class="bg-gray-50 p-2 rounded-xl border border-gray-200 text-center font-mono text-accent font-semibold">
+                        $$\\Delta K = -\\Delta U_{\\text{grav}} \\iff E_{\\text{mec}} = K + U_{\\text{grav}} = \\text{constante}$$
+                    </div>
+                    <p>Donde la energía cinética instantánea es $K = \\frac{1}{2} m v^2$.</p>
+                    <div class="p-2 rounded-lg bg-accent-light/50 border border-accent/20 text-[11px]">
+                        <strong>Comportamiento en el Vértice ($y_{\\text{máx}}$):</strong><br>
+                        En la cúspide del salto o lanzamiento, la velocidad instantánea se anula ($v = 0 \\implies K = 0$), concentrándose el $100\\%$ de la energía mecánica en forma de energía potencial ($E_{\\text{mec}} = U_{\\text{máx}}$).
+                    </div>
+                `;
+
+                controlsContainer.innerHTML = `
+                    <div>
+                        <label class="text-xs font-semibold text-gray-700 block mb-1">Caso de Estudio Biomecánico:</label>
+                        <select onchange="updateScenario(this.value)" class="w-full bg-white border border-gray-200 text-gray-700 text-xs rounded-xl p-2.5 focus:outline-none focus:border-accent">
+                            <option value="jump" ${state.scenarioType === 'jump' ? 'selected' : ''}>La Saltadora (Despegue, Ascenso y Vuelo)</option>
+                            <option value="projectile" ${state.scenarioType === 'projectile' ? 'selected' : ''}>Lanzamiento Vertical de Proyectil</option>
+                        </select>
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-xs mb-1 font-semibold text-gray-700">
+                            <span>Masa Corporal ($m$):</span>
+                            <span id="val-mass" class="font-mono text-accent">${state.mass.toFixed(1)} kg</span>
+                        </div>
+                        <input type="range" min="1.0" max="80.0" step="1.0" value="${state.mass}" oninput="updateParam('mass', this.value)" class="w-full accent-[#436600] bg-gray-200 rounded-lg h-1.5 cursor-pointer">
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-xs mb-1 font-semibold text-gray-700">
+                            <span>Velocidad de Despegue ($v_0$):</span>
+                            <span id="val-init-vel" class="font-mono text-accent">${state.initialVelocity.toFixed(1)} m/s</span>
+                        </div>
+                        <input type="range" min="2.0" max="15.0" step="0.5" value="${state.initialVelocity}" oninput="updateParam('initialVelocity', this.value)" class="w-full accent-[#436600] bg-gray-200 rounded-lg h-1.5 cursor-pointer">
+                    </div>
+                `;
+            } else if (currentModule === 'elastic') {
+                theoryBadge.textContent = "Potencial Elástica";
+                canvasTitle.innerHTML = `<i class="fa-solid fa-wave-square text-accent"></i> Energía Potencial Elástica Cuadrática ($U_{\\text{el}} = \\frac{1}{2} k x^2$)`;
+                canvasTip.innerHTML = `💡 Deforme el resorte horizontalmente y observe en tiempo real la parábola energética y el punto de trabajo.`;
+
+                theoryContainer.innerHTML = `
+                    <p>La <strong>energía potencial elástica</strong> es la energía almacenada al comprimir o elongar un medio elástico ideal según la ley de Hooke ($F = -k \\cdot x$):</p>
+                    <div class="bg-gray-50 p-2 rounded-xl border border-gray-200 text-center font-mono text-accent font-semibold">
+                        $$U_{\\text{el}} = \\frac{1}{2} k x^2$$
+                    </div>
+                    <div class="p-2 rounded-lg bg-accent-light/50 border border-accent/20 text-[11px]">
+                        <strong>Simetría Cuadrática:</strong><br>
+                        • En equilibrio ($x = 0$), $U_{\\text{el}} = 0$.<br>
+                        • Al duplicar la deformación ($2x$), la energía se <strong>cuatriplica ($4U_{\\text{el}}$)</strong>.<br>
+                        • Ya sea estiramiento ($x > 0$) o compresión ($x < 0$), $U_{\\text{el}} \\ge 0$ siempre. Fundamental en la restitución tendinosa de Aquiles.
+                    </div>
+                `;
+
+                controlsContainer.innerHTML = `
+                    <div>
+                        <div class="flex justify-between text-xs mb-1 font-semibold text-gray-700">
+                            <span>Rigidez / Constante ($k$):</span>
+                            <span id="val-spring" class="font-mono text-accent">${state.springConstant} N/m</span>
+                        </div>
+                        <input type="range" min="50" max="500" step="10" value="${state.springConstant}" oninput="updateParam('springConstant', this.value)" class="w-full accent-[#436600] bg-gray-200 rounded-lg h-1.5 cursor-pointer">
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-xs mb-1 font-semibold text-gray-700">
+                            <span>Deformación ($x$):</span>
+                            <span id="val-disp" class="font-mono text-accent">${state.displacement.toFixed(2)} m</span>
+                        </div>
+                        <input type="range" min="-0.45" max="0.45" step="0.01" value="${state.displacement}" oninput="updateParam('displacement', this.value)" class="w-full accent-[#436600] bg-gray-200 rounded-lg h-1.5 cursor-pointer">
+                    </div>
+                `;
+            }
+
+            updateMetrics();
+        }
+
+        function updateParam(param, val) {
+            state[param] = parseFloat(val);
+            if (param === 'height') {
+                gravTargetH = state.height;
+                state.heightTargetOriginal = state.height;
+                const hSlider = document.getElementById('val-height');
+                if (hSlider) hSlider.textContent = `${state.height.toFixed(1)} m`;
+            } else if (param === 'height1') {
+                const h1Slider = document.getElementById('val-h1');
+                if (h1Slider) h1Slider.textContent = `${state.height1.toFixed(1)} m`;
+            } else if (param === 'mass') {
+                const mSlider = document.getElementById('val-mass');
+                if (mSlider) mSlider.textContent = `${state.mass.toFixed(1)} kg`;
+            } else if (param === 'gravity') {
+                const gSlider = document.getElementById('val-gravity');
+                if (gSlider) gSlider.textContent = `${state.gravity.toFixed(1)} m/s²`;
+            } else if (param === 'initialVelocity') {
+                state.velocity = state.initialVelocity;
+                const vSlider = document.getElementById('val-init-vel');
+                if (vSlider) vSlider.textContent = `${state.initialVelocity.toFixed(1)} m/s`;
+            } else if (param === 'springConstant') {
+                const kSlider = document.getElementById('val-spring');
+                if (kSlider) kSlider.textContent = `${state.springConstant} N/m`;
+            } else if (param === 'displacement') {
+                const dSlider = document.getElementById('val-disp');
+                if (dSlider) dSlider.textContent = `${state.displacement.toFixed(2)} m`;
+            }
+            if (!isRunning) {
+                drawSimulation();
+            }
+            updateMetrics();
+        }
+
+        function updateScenario(type) {
+            state.scenarioType = type;
+            simTime = 0;
+            state.height = 0.0;
+            state.velocity = state.initialVelocity;
+            if (type === 'jump') {
+                state.mass = 55.0;
+                state.initialVelocity = 4.5;
+            } else {
+                state.mass = 2.0;
+                state.initialVelocity = 9.0;
+            }
+            updateTheoryAndControls();
+            drawSimulation();
+            updateMetrics();
+        }
+
+        function updateMetrics() {
+            const metricsContainer = document.getElementById('metrics-container');
+            let m1Name = "", m1Val = "", m2Name = "", m2Val = "", m3Name = "", m3Val = "", m4Name = "", m4Val = "";
+
+            if (currentModule === 'gravitational') {
+                const u1 = state.mass * state.gravity * state.height1;
+                const u2 = state.mass * state.gravity * state.height;
+                const deltaU = u2 - u1;
+                const wGrav = -deltaU;
+
+                m1Name = "U. Inicial ($U_{1}$)";
+                m1Val = `${u1.toFixed(1)} J`;
+                m2Name = "U. Final ($U_{2}$)";
+                m2Val = `${u2.toFixed(1)} J`;
+                m3Name = "Variación ($\\Delta U$)";
+                m3Val = `${deltaU >= 0 ? '+' : ''}${deltaU.toFixed(1)} J`;
+                m4Name = "Trabajo Peso ($W_{\\text{grav}}$)";
+                m4Val = `${wGrav >= 0 ? '+' : ''}${wGrav.toFixed(1)} J`;
+            } else if (currentModule === 'conservation') {
+                const uGrav = state.mass * state.gravity * state.height;
+                const kKinetic = 0.5 * state.mass * Math.pow(state.velocity, 2);
+                const eMec = uGrav + kKinetic;
+
+                m1Name = "Energía Cinética ($K$)";
+                m1Val = `${kKinetic.toFixed(1)} J`;
+                m2Name = "Energía Potencial ($U$)";
+                m2Val = `${uGrav.toFixed(1)} J`;
+                m3Name = "Energía Mecánica ($E_{\\text{mec}}$)";
+                m3Val = `${eMec.toFixed(1)} J`;
+                m4Name = "Velocidad ($v$)";
+                m4Val = `${state.velocity.toFixed(2)} m/s`;
+            } else if (currentModule === 'elastic') {
+                const uElastic = 0.5 * state.springConstant * Math.pow(state.displacement, 2);
+                const restoringForce = -state.springConstant * state.displacement;
+
+                m1Name = "U. Elástica ($U_{\\text{el}}$)";
+                m1Val = `${uElastic.toFixed(2)} J`;
+                m2Name = "Fuerza Hooke ($F$)";
+                m2Val = `${restoringForce.toFixed(1)} N`;
+                m3Name = "Deformación ($x$)";
+                m3Val = `${state.displacement >= 0 ? '+' : ''}${state.displacement.toFixed(2)} m`;
+                m4Name = "Rigidez ($k$)";
+                m4Val = `${state.springConstant} N/m`;
+            }
+
+            metricsContainer.innerHTML = `
+                <div class="bg-gray-50 p-2.5 rounded-xl border border-gray-100">
+                    <span class="text-[10px] text-gray-500 font-medium block mb-0.5">${m1Name}</span>
+                    <span class="text-sm font-bold font-mono text-accent">${m1Val}</span>
+                </div>
+                <div class="bg-gray-50 p-2.5 rounded-xl border border-gray-100">
+                    <span class="text-[10px] text-gray-500 font-medium block mb-0.5">${m2Name}</span>
+                    <span class="text-sm font-bold font-mono text-amber-600">${m2Val}</span>
+                </div>
+                <div class="bg-gray-50 p-2.5 rounded-xl border border-gray-100">
+                    <span class="text-[10px] text-gray-500 font-medium block mb-0.5">${m3Name}</span>
+                    <span class="text-sm font-bold font-mono text-emerald-600">${m3Val}</span>
+                </div>
+                <div class="bg-gray-50 p-2.5 rounded-xl border border-gray-100">
+                    <span class="text-[10px] text-gray-500 font-medium block mb-0.5">${m4Name}</span>
+                    <span class="text-sm font-bold font-mono text-purple-700">${m4Val}</span>
+                </div>
+            `;
+
+            updatePedagogicalFeedback();
+            renderKaTeX();
+        }
+
+        function updatePedagogicalFeedback() {
+            const feedbackEl = document.getElementById('pedagogical-feedback');
+            if (currentModule === 'gravitational') {
+                const u1 = state.mass * state.gravity * state.height1;
+                const u2 = state.mass * state.gravity * state.height;
+                const deltaU = u2 - u1;
+                const wGrav = -deltaU;
+
+                let signText = "";
+                if (deltaU > 0) {
+                    signText = "El cuerpo <strong>asciende</strong> ($y_2 > y_1$), aumentando su energía potencial ($\\Delta U > 0$). La gravedad realiza un <strong>trabajo resistente ($W_{\\text{grav}} < 0$)</strong> de " + wGrav.toFixed(1) + " J. Para elevar un paciente o levantar pesas, el sistema osteomuscular debe realizar un trabajo concéntrico positivo que venza esta resistencia.";
+                } else if (deltaU < 0) {
+                    signText = "El cuerpo <strong>desciende</strong> ($y_2 < y_1$), liberando energía potencial ($\\Delta U < 0$). La gravedad realiza un <strong>trabajo motor ($W_{\\text{grav}} > 0$)</strong> de " + wGrav.toFixed(1) + " J. La fuerza peso favorece el movimiento y acelera la masa hacia el suelo.";
+                } else {
+                    signText = "El cuerpo permanece en la misma cota ($y_1 = y_2$). La variación de energía potencial es nula ($\\Delta U = 0$) y el trabajo del peso es $0\\,\\text{J}$.";
+                }
+
+                feedbackEl.innerHTML = `<strong>Diagnóstico Dinámico:</strong> Con una masa de <code>${state.mass} kg</code> y una variación de altura de <code>${(state.height - state.height1).toFixed(1)} m</code>: ${signText}`;
+            } else if (currentModule === 'conservation') {
+                const uGrav = state.mass * state.gravity * state.height;
+                const kKinetic = 0.5 * state.mass * Math.pow(state.velocity, 2);
+                const eMec = uGrav + kKinetic;
+                const uPct = eMec > 0 ? ((uGrav / eMec) * 100).toFixed(0) : 0;
+                const kPct = eMec > 0 ? ((kKinetic / eMec) * 100).toFixed(0) : 0;
+
+                feedbackEl.innerHTML = `<strong>Conservación Mecánica:</strong> La energía mecánica total es estrictamente constante en <strong>${eMec.toFixed(1)} J</strong>. En este punto de la trayectoria, el sistema se compone de un <code>${uPct}%</code> de energía potencial y un <code>${kPct}%</code> de energía cinética. En el punto culminante del salto/vuelo ($v = 0$), toda la energía cinética del despegue se ha transformado en energía potencial gravitacional antes de iniciar el descenso.`;
+            } else if (currentModule === 'elastic') {
+                const uElastic = 0.5 * state.springConstant * Math.pow(state.displacement, 2);
+                const signEl = state.displacement > 0 ? 'elongación (tracción)' : (state.displacement < 0 ? 'compresión' : 'equilibrio');
+                feedbackEl.innerHTML = `<strong>Biomecánica Elástica:</strong> Al aplicar una deformación de <code>${state.displacement.toFixed(2)} m</code> en régimen de ${signEl}, se almacenan <strong>${uElastic.toFixed(2)} J</strong>. La gráfica parabólica muestra cómo la energía depende del cuadrado de la deformación ($x^2$), permitiendo al tendón de Aquiles almacenar energía elástica en la fase de apoyo del pie y liberarla sin costo metabólico adicional durante la propulsión.`;
+            }
+        }
+
+        function renderKaTeX() {
+            if (typeof renderMathInElement === 'function') {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        { left: '$$', right: '$$', display: true },
+                        { left: '$', right: '$', display: false }
+                    ],
+                    throwOnError: false
+                });
+            }
+        }
+
+        // ==================== RENDERIZADO EN CANVAS ====================
+        function drawCanvasTag(ctx, text, x, y, bgColor, textColor, borderColor, targetX, targetY) {
+            ctx.save();
+            ctx.font = 'bold 10px "Outfit", sans-serif';
+            const paddingX = 8;
+            const textWidth = ctx.measureText(text).width;
+            const boxW = textWidth + paddingX * 2;
+            const boxH = 20;
+
+            if (targetX !== undefined && targetY !== undefined) {
+                ctx.strokeStyle = borderColor || '#94a3b8';
+                ctx.lineWidth = 1.2;
+                ctx.setLineDash([3, 3]);
+                ctx.beginPath();
+                ctx.moveTo(x + boxW / 2, y + boxH / 2);
+                ctx.lineTo(targetX, targetY);
+                ctx.stroke();
+                ctx.setLineDash([]);
+                
+                ctx.fillStyle = borderColor || '#94a3b8';
+                ctx.beginPath();
+                ctx.arc(targetX, targetY, 2.5, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            ctx.fillStyle = bgColor;
+            ctx.beginPath();
+            ctx.roundRect(x, y, boxW, boxH, 6);
+            ctx.fill();
+            ctx.strokeStyle = borderColor;
+            ctx.lineWidth = 1;
+            ctx.stroke();
+
+            ctx.fillStyle = textColor;
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(text, x + paddingX, y + boxH / 2);
+            ctx.restore();
+        }
+
+        function drawSimulation() {
+            const w = canvas.width / window.devicePixelRatio;
+            const h = canvas.height / window.devicePixelRatio;
+            ctx.clearRect(0, 0, w, h);
+
+            // Fondo cuadriculado suave
+            ctx.fillStyle = '#0f172a';
+            ctx.fillRect(0, 0, w, h);
+
+            ctx.strokeStyle = '#1e293b';
+            ctx.lineWidth = 1;
+            const gridSize = 25;
+            for (let x = 0; x < w; x += gridSize) {
+                ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
+            }
+            for (let y = 0; y < h; y += gridSize) {
+                ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+            }
+
+            if (currentModule === 'gravitational') {
+                drawGravitationalScene(w, h);
+            } else if (currentModule === 'conservation') {
+                drawConservationScene(w, h);
+            } else if (currentModule === 'elastic') {
+                drawElasticScene(w, h);
+            }
+        }
+
+        function drawGravitationalScene(w, h) {
+            const groundY = h - 60;
+            const maxH = 10.0;
+            const pxPerMeter = (groundY - 70) / maxH;
+            
+            const y1Px = groundY - (state.height1 * pxPerMeter);
+            const y2Px = groundY - (state.height * pxPerMeter);
+            const objX = w * 0.42;
+
+            // Suelo & Referencia
+            ctx.fillStyle = '#334155';
+            ctx.fillRect(0, groundY, w, 6);
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = '10px "Outfit", sans-serif';
+            ctx.fillText('Nivel de Referencia del Suelo (y = 0 m)', 25, groundY + 22);
+
+            // Nivel de Referencia Inicial (y1)
+            ctx.strokeStyle = '#64748b';
+            ctx.setLineDash([3, 3]);
+            ctx.beginPath();
+            ctx.moveTo(40, y1Px);
+            ctx.lineTo(w - 40, y1Px);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Cota y1
+            drawCanvasTag(ctx, `y1 = ${state.height1.toFixed(1)} m (Inicio)`, 45, y1Px - 26, '#1e293b', '#94a3b8', '#64748b', 40, y1Px);
+
+            // Cota vertical entre y1 e y2 (Delta y)
+            ctx.strokeStyle = '#436600';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(objX + 60, y1Px);
+            ctx.lineTo(objX + 60, y2Px);
+            ctx.stroke();
+
+            // Puntas de flecha para Delta y
+            const dyDir = y2Px < y1Px ? -1 : 1;
+            ctx.fillStyle = '#436600';
+            ctx.beginPath();
+            ctx.moveTo(objX + 60, y2Px);
+            ctx.lineTo(objX + 56, y2Px - dyDir * 8);
+            ctx.lineTo(objX + 64, y2Px - dyDir * 8);
+            ctx.closePath();
+            ctx.fill();
+
+            const deltaY = state.height - state.height1;
+            drawCanvasTag(ctx, `Δy = ${deltaY >= 0 ? '+' : ''}${deltaY.toFixed(1)} m`, objX + 75, (y1Px + y2Px) / 2 - 10, '#f1f6eb', '#436600', '#436600', objX + 60, (y1Px + y2Px) / 2);
+
+            // Cuerpo en y2 (Esfera médica volumétrica 3D)
+            const rad = 22;
+            const grad = ctx.createRadialGradient(objX - 6, y2Px - 6, 3, objX, y2Px, rad);
+            grad.addColorStop(0, '#86efac');
+            grad.addColorStop(0.5, '#436600');
+            grad.addColorStop(1, '#1b2a00');
+            ctx.fillStyle = grad;
+            ctx.beginPath();
+            ctx.arc(objX, y2Px, rad, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = '#a3e635';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 11px "Outfit", sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(`${state.mass.toFixed(1)}kg`, objX, y2Px);
+            ctx.textAlign = 'left';
+
+            // Vector Fuerza Peso P = mg hacia abajo
+            const arrowLen = Math.min(65, state.mass * 8 + 20);
+            drawArrow(objX, y2Px + rad, objX, y2Px + rad + arrowLen, '#ef4444', `P = mg (${(state.mass * state.gravity).toFixed(1)} N)`);
+
+            // Etiqueta del objeto en y2
+            drawCanvasTag(ctx, `Posición Actual y2 = ${state.height.toFixed(1)} m`, objX - 180, y2Px - 10, '#1e293b', '#f8fafc', '#436600', objX - rad, y2Px);
+        }
+
+        function drawConservationScene(w, h) {
+            const groundY = h - 60;
+            const maxH = 10.0;
+            const pxPerMeter = (groundY - 70) / maxH;
+            const objY = groundY - (state.height * pxPerMeter);
+            const objX = w * 0.38;
+
+            // Suelo
+            ctx.fillStyle = '#334155';
+            ctx.fillRect(0, groundY, w, 6);
+
+            // Representación según caso: La Saltadora vs Proyectil
+            if (state.scenarioType === 'jump') {
+                // Silueta de atleta biomecánica
+                ctx.save();
+                ctx.translate(objX, objY);
+
+                // Cabeza
+                ctx.fillStyle = '#fde047';
+                ctx.beginPath();
+                ctx.arc(0, -38, 9, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Tronco
+                ctx.strokeStyle = '#38bdf8';
+                ctx.lineWidth = 4;
+                ctx.beginPath();
+                ctx.moveTo(0, -29);
+                ctx.lineTo(0, -8);
+                ctx.stroke();
+
+                // Brazos en elevación biomecánica
+                ctx.strokeStyle = '#fde047';
+                ctx.lineWidth = 2.5;
+                ctx.beginPath();
+                ctx.moveTo(-12, -32);
+                ctx.lineTo(0, -24);
+                ctx.lineTo(12, -32);
+                ctx.stroke();
+
+                // Miembros inferiores (flexión/extensión)
+                ctx.strokeStyle = '#fde047';
+                ctx.lineWidth = 3.5;
+                ctx.beginPath();
+                ctx.moveTo(0, -8);
+                ctx.lineTo(-8, 8);
+                ctx.lineTo(-4, 24);
+                ctx.moveTo(0, -8);
+                ctx.lineTo(8, 8);
+                ctx.lineTo(4, 24);
+                ctx.stroke();
+                ctx.restore();
+
+                drawCanvasTag(ctx, `Atleta en Despegue: y = ${state.height.toFixed(1)} m`, objX - 175, objY - 45, '#1e293b', '#f8fafc', '#38bdf8', objX, objY - 30);
+            } else {
+                // Proyectil Esférico con sombreado 3D
+                const rad = 18;
+                const pGrad = ctx.createRadialGradient(objX - 4, objY - 4, 2, objX, objY, rad);
+                pGrad.addColorStop(0, '#fef08a');
+                pGrad.addColorStop(0.6, '#eab308');
+                pGrad.addColorStop(1, '#854d0e');
+                ctx.fillStyle = pGrad;
+                ctx.beginPath();
+                ctx.arc(objX, objY, rad, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.strokeStyle = '#fef08a';
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+
+                drawCanvasTag(ctx, `Proyectil: y = ${state.height.toFixed(1)} m`, objX - 160, objY - 35, '#1e293b', '#f8fafc', '#eab308', objX - rad, objY);
+            }
+
+            // Vector velocidad instantánea si no es nula
+            if (Math.abs(state.velocity) > 0.1) {
+                const vLen = state.velocity * 4;
+                const vColor = state.velocity >= 0 ? '#10b981' : '#f43f5e';
+                drawArrow(objX + 25, objY, objX + 25, objY - vLen, vColor, `v = ${state.velocity.toFixed(1)} m/s`);
+            } else {
+                drawCanvasTag(ctx, 'Vértice (v = 0 m/s, K = 0)', objX + 25, objY - 15, '#1e293b', '#facc15', '#eab308', objX, objY);
+            }
+
+            // Gráfica de Barras de Energía a la Derecha
+            const barStartX = w - 160;
+            const barW = 32;
+            const barMaxH = 160;
+
+            const uGrav = state.mass * state.gravity * state.height;
+            const kKinetic = 0.5 * state.mass * Math.pow(state.velocity, 2);
+            const eMec = uGrav + kKinetic;
+            const maxScaleEnergy = Math.max(eMec, 0.5 * state.mass * Math.pow(state.initialVelocity, 2) + state.mass * state.gravity * 2);
+
+            const uH = maxScaleEnergy > 0 ? (uGrav / maxScaleEnergy) * barMaxH : 0;
+            const kH = maxScaleEnergy > 0 ? (kKinetic / maxScaleEnergy) * barMaxH : 0;
+            const eH = maxScaleEnergy > 0 ? (eMec / maxScaleEnergy) * barMaxH : 0;
+
+            // Marco del gráfico
+            ctx.fillStyle = '#1e293b';
+            ctx.beginPath();
+            ctx.roundRect(barStartX - 15, groundY - barMaxH - 35, 150, barMaxH + 65, 12);
+            ctx.fill();
+            ctx.strokeStyle = '#334155';
+            ctx.stroke();
+
+            ctx.fillStyle = '#cbd5e1';
+            ctx.font = 'bold 10px "Outfit", sans-serif';
+            ctx.fillText('BALANCE DE ENERGÍA (J)', barStartX - 5, groundY - barMaxH - 18);
+
+            // Fondos de barras
+            ctx.fillStyle = '#0f172a';
+            ctx.fillRect(barStartX, groundY - barMaxH, barW, barMaxH);
+            ctx.fillRect(barStartX + 42, groundY - barMaxH, barW, barMaxH);
+            ctx.fillRect(barStartX + 84, groundY - barMaxH, barW, barMaxH);
+
+            // Barras activas
+            ctx.fillStyle = '#eab308'; // U
+            ctx.fillRect(barStartX, groundY - uH, barW, uH);
+            ctx.fillStyle = '#10b981'; // K
+            ctx.fillRect(barStartX + 42, groundY - kH, barW, kH);
+            ctx.fillStyle = '#436600'; // Emec
+            ctx.fillRect(barStartX + 84, groundY - eH, barW, eH);
+
+            // Rótulos de barras
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = '10px "Outfit", sans-serif';
+            ctx.fillText('U', barStartX + 12, groundY + 14);
+            ctx.fillText('K', barStartX + 54, groundY + 14);
+            ctx.fillText('Emec', barStartX + 88, groundY + 14);
+        }
+
+        function drawElasticScene(w, h) {
+            // Dividir el lienzo en dos zonas: Izquierda (Muelle Físico) y Derecha (Parábola Cuadrática)
+            const midX = w * 0.48;
+
+            // Línea divisoria suave
+            ctx.strokeStyle = '#334155';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([4, 4]);
+            ctx.beginPath();
+            ctx.moveTo(midX, 20);
+            ctx.lineTo(midX, h - 20);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // ==================== ZONA IZQUIERDA: RESORTE FÍSICO ====================
+            const centerY = h * 0.52;
+            const wallX = 40;
+            const restLength = 110;
+            const pxPerMeter = 160;
+            const currentSpringLen = restLength + (state.displacement * pxPerMeter);
+            const blockW = 46;
+            const blockX = wallX + currentSpringLen;
+
+            // Pared de anclaje
+            ctx.fillStyle = '#475569';
+            ctx.fillRect(wallX - 12, centerY - 60, 12, 120);
+
+            // Suelo de deslizamiento
+            ctx.fillStyle = '#334155';
+            ctx.fillRect(wallX, centerY + 28, midX - wallX - 15, 4);
+
+            // Resorte helicoidal en espiral
+            ctx.strokeStyle = '#facc15';
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+            ctx.moveTo(wallX, centerY);
+            const coils = 11;
+            const dx = currentSpringLen / coils;
+            for (let i = 1; i <= coils; i++) {
+                const cx = wallX + (i - 0.5) * dx;
+                const cy = centerY + (i % 2 === 0 ? 14 : -14);
+                ctx.lineTo(cx, cy);
+            }
+            ctx.lineTo(blockX, centerY);
+            ctx.stroke();
+
+            // Bloque / Masa 3D
+            const bGrad = ctx.createLinearGradient(blockX, centerY - 25, blockX + blockW, centerY + 25);
+            bGrad.addColorStop(0, '#60a5fa');
+            bGrad.addColorStop(1, '#1d4ed8');
+            ctx.fillStyle = bGrad;
+            ctx.fillRect(blockX, centerY - 24, blockW, 48);
+            ctx.strokeStyle = '#93c5fd';
+            ctx.lineWidth = 1.5;
+            ctx.strokeRect(blockX, centerY - 24, blockW, 48);
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 10px "Outfit", sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('Masa', blockX + blockW / 2, centerY);
+            ctx.textAlign = 'left';
+
+            // Línea de equilibrio (x = 0)
+            const eqX = wallX + restLength;
+            ctx.strokeStyle = '#64748b';
+            ctx.setLineDash([3, 3]);
+            ctx.beginPath();
+            ctx.moveTo(eqX, centerY - 55);
+            ctx.lineTo(eqX, centerY + 45);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            drawCanvasTag(ctx, 'Equilibrio (x = 0)', eqX - 45, centerY + 52, '#1e293b', '#94a3b8', '#64748b', eqX, centerY + 28);
+
+            // Cota de deformación x
+            drawCanvasTag(ctx, `x = ${state.displacement >= 0 ? '+' : ''}${state.displacement.toFixed(2)} m`, blockX - 25, centerY - 55, '#f1f6eb', '#436600', '#436600', blockX + blockW / 2, centerY - 24);
+
+            // ==================== ZONA DERECHA: GRÁFICA PARABÓLICA ====================
+            const graphX = midX + 35;
+            const graphY = h - 60;
+            const graphW = w - graphX - 35;
+            const graphH = h - 110;
+
+            // Ejes cartesianos
+            ctx.strokeStyle = '#64748b';
+            ctx.lineWidth = 1.5;
+            // Eje Y (Energía U)
+            ctx.beginPath();
+            ctx.moveTo(graphX + graphW / 2, graphY);
+            ctx.lineTo(graphX + graphW / 2, graphY - graphH);
+            ctx.stroke();
+            // Eje X (Deformación x)
+            ctx.beginPath();
+            ctx.moveTo(graphX, graphY);
+            ctx.lineTo(graphX + graphW, graphY);
+            ctx.stroke();
+
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = '10px "Outfit", sans-serif';
+            ctx.fillText('U_el (J)', graphX + graphW / 2 + 8, graphY - graphH + 12);
+            ctx.fillText('-x', graphX + 5, graphY - 6);
+            ctx.fillText('+x', graphX + graphW - 15, graphY - 6);
+            ctx.fillText('0', graphX + graphW / 2 - 8, graphY + 14);
+
+            // Curva Parabólica U = 0.5 * k * x^2
+            const maxDisp = 0.45;
+            const maxU = 0.5 * state.springConstant * Math.pow(maxDisp, 2);
+
+            ctx.strokeStyle = '#436600';
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+            for (let px = 0; px <= graphW; px += 2) {
+                const normX = ((px / graphW) - 0.5) * (maxDisp * 2);
+                const curU = 0.5 * state.springConstant * Math.pow(normX, 2);
+                const py = graphY - (curU / maxU) * (graphH - 20);
+                if (px === 0) ctx.moveTo(graphX + px, py);
+                else ctx.lineTo(graphX + px, py);
+            }
+            ctx.stroke();
+
+            // Punto de Trabajo Dinámico en la Parábola
+            const currentU = 0.5 * state.springConstant * Math.pow(state.displacement, 2);
+            const dotPx = graphX + ((state.displacement / (maxDisp * 2)) + 0.5) * graphW;
+            const dotPy = graphY - (currentU / maxU) * (graphH - 20);
+
+            // Punto brillante
+            ctx.fillStyle = '#facc15';
+            ctx.beginPath();
+            ctx.arc(dotPx, dotPy, 5.5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            drawCanvasTag(ctx, `U = ${currentU.toFixed(2)} J`, Math.min(graphX + graphW - 85, Math.max(graphX, dotPx - 40)), dotPy - 28, '#1e293b', '#facc15', '#436600', dotPx, dotPy);
+        }
+
+        function drawArrow(fromX, fromY, toX, toY, color, label) {
+            ctx.save();
+            ctx.strokeStyle = color;
+            ctx.fillStyle = color;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(fromX, fromY);
+            ctx.lineTo(toX, toY);
+            ctx.stroke();
+
+            const angle = Math.atan2(toY - fromY, toX - fromX);
+            ctx.beginPath();
+            ctx.moveTo(toX, toY);
+            ctx.lineTo(toX - 7 * Math.cos(angle - Math.PI / 6), toY - 7 * Math.sin(angle - Math.PI / 6));
+            ctx.lineTo(toX - 7 * Math.cos(angle + Math.PI / 6), toY - 7 * Math.sin(angle + Math.PI / 6));
+            ctx.closePath();
+            ctx.fill();
+
+            if (label) {
+                drawCanvasTag(ctx, label, toX + 6, toY - 8, '#1e293b', '#f8fafc', color);
+            }
+            ctx.restore();
+        }
+
+        function toggleSimulation() {
+            isRunning = !isRunning;
+            const playBtn = document.getElementById('sim-play-btn');
+            const playIcon = document.getElementById('play-icon');
+            const playText = document.getElementById('play-text');
+
+            if (isRunning) {
+                playBtn.className = "flex-1 bg-amber-600 hover:bg-amber-700 text-white font-semibold py-2.5 px-4 rounded-xl shadow-sm transition flex items-center justify-center gap-2 text-xs";
+                playIcon.className = "fa-solid fa-pause";
+                playText.textContent = "Pausar Simulación";
+
+                if (currentModule === 'gravitational') {
+                    // Inicializar animación desde y1 si ya estaba en el destino o iniciar movimiento hacia y2
+                    if (Math.abs(state.height - state.height1) < 0.05) {
+                        // Está en y1, animar hacia el valor objetivo que haya fijado el usuario
+                        gravAnimPhase = 0;
+                    }
+                } else if (currentModule === 'conservation') {
+                    if (state.height <= 0 && state.velocity <= 0) {
+                        state.height = 0.0;
+                        state.velocity = state.initialVelocity;
+                        simTime = 0;
+                    }
+                }
+                animationFrameId = requestAnimationFrame(simulationLoop);
+            } else {
+                playBtn.className = "flex-1 bg-accent hover:bg-accent-hover text-white font-semibold py-2.5 px-4 rounded-xl shadow-sm transition flex items-center justify-center gap-2 text-xs";
+                playIcon.className = "fa-solid fa-play";
+                playText.textContent = "Iniciar Simulación";
+                if (animationFrameId) cancelAnimationFrame(animationFrameId);
+            }
+        }
+
+        let gravAnimPhase = 0;
+        let gravTargetH = 6.0;
+
+        function resetSimulation() {
+            isRunning = false;
+            const playBtn = document.getElementById('sim-play-btn');
+            playBtn.className = "flex-1 bg-accent hover:bg-accent-hover text-white font-semibold py-2.5 px-4 rounded-xl shadow-sm transition flex items-center justify-center gap-2 text-xs";
+            document.getElementById('play-icon').className = "fa-solid fa-play";
+            document.getElementById('play-text').textContent = "Iniciar Simulación";
+            if (animationFrameId) cancelAnimationFrame(animationFrameId);
+
+            simTime = 0;
+            if (currentModule === 'gravitational') {
+                state.height1 = 2.0;
+                state.height = 6.0;
+                gravTargetH = 6.0;
+                gravAnimPhase = 0;
+                const h1Slider = document.getElementById('val-h1');
+                if (h1Slider) h1Slider.textContent = `${state.height1.toFixed(1)} m`;
+                const h2Slider = document.getElementById('val-height');
+                if (h2Slider) h2Slider.textContent = `${state.height.toFixed(1)} m`;
+            } else if (currentModule === 'conservation') {
+                state.height = 0.0;
+                state.velocity = state.initialVelocity;
+            } else if (currentModule === 'elastic') {
+                state.displacement = 0.25;
+            }
+            drawSimulation();
+            updateMetrics();
+        }
+
+        function simulationLoop() {
+            if (!isRunning) return;
+
+            const dt = 0.025;
+            if (currentModule === 'gravitational') {
+                // Animación didáctica del desplazamiento entre y1 e y2
+                const speed = 2.5; // m/s
+                const diff = gravTargetH - state.height;
+                if (Math.abs(diff) > 0.05) {
+                    const step = Math.sign(diff) * speed * dt;
+                    state.height += step;
+                } else {
+                    state.height = gravTargetH;
+                    // Alternar entre y1 y la altura final objetivo para mostrar el ciclo de trabajo
+                    if (gravTargetH === state.height1) {
+                        gravTargetH = state.heightTargetOriginal || 6.0;
+                    } else {
+                        state.heightTargetOriginal = gravTargetH;
+                        gravTargetH = state.height1;
+                    }
+                }
+                const hSlider = document.getElementById('val-height');
+                if (hSlider) hSlider.textContent = `${state.height.toFixed(1)} m`;
+            } else if (currentModule === 'conservation') {
+                simTime += dt;
+                state.velocity = state.initialVelocity - state.gravity * simTime;
+                state.height = (state.initialVelocity * simTime) - (0.5 * state.gravity * Math.pow(simTime, 2));
+
+                if (state.height <= 0) {
+                    state.height = 0;
+                    state.velocity = 0;
+                    isRunning = false;
+                    document.getElementById('play-icon').className = "fa-solid fa-play";
+                    document.getElementById('play-text').textContent = "Iniciar Simulación";
+                    document.getElementById('sim-play-btn').className = "flex-1 bg-accent hover:bg-accent-hover text-white font-semibold py-2.5 px-4 rounded-xl shadow-sm transition flex items-center justify-center gap-2 text-xs";
+                }
+            } else if (currentModule === 'elastic') {
+                simTime += dt;
+                const omega = Math.sqrt(state.springConstant / (state.mass || 2.0));
+                state.displacement = 0.35 * Math.cos(omega * simTime);
+                const dSlider = document.getElementById('val-disp');
+                if (dSlider) dSlider.textContent = `${state.displacement.toFixed(2)} m`;
+            }
+
+            drawSimulation();
+            updateMetrics();
+
+            if (isRunning) {
+                animationFrameId = requestAnimationFrame(simulationLoop);
+            }
+        }
+
+        // Interacción táctil / ratón sobre el canvas
+        let isDragging = false;
+        canvas.addEventListener('mousedown', () => { isDragging = true; });
+        window.addEventListener('mouseup', () => { isDragging = false; });
+        canvas.addEventListener('mousemove', (e) => {
+            if (!isDragging || isRunning) return;
+            const rect = canvas.getBoundingClientRect();
+            const yMouse = e.clientY - rect.top;
+            const xMouse = e.clientX - rect.left;
+            const h = canvas.height / window.devicePixelRatio;
+            const groundY = h - 60;
+            const maxH = 10.0;
+            const pxPerMeter = (groundY - 70) / maxH;
+
+            if (currentModule === 'gravitational') {
+                let newH = (groundY - yMouse) / pxPerMeter;
+                if (newH < 0) newH = 0;
+                if (newH > 10) newH = 10;
+                state.height = newH;
+                const hSlider = document.getElementById('val-height');
+                if (hSlider) hSlider.textContent = `${state.height.toFixed(1)} m`;
+                drawSimulation();
+                updateMetrics();
+            } else if (currentModule === 'elastic') {
+                const wallX = 40;
+                const restLength = 110;
+                let newDisp = (xMouse - wallX - restLength) / 160;
+                if (newDisp < -0.45) newDisp = -0.45;
+                if (newDisp > 0.45) newDisp = 0.45;
+                state.displacement = newDisp;
+                const dSlider = document.getElementById('val-disp');
+                if (dSlider) dSlider.textContent = `${state.displacement.toFixed(2)} m`;
+                drawSimulation();
+                updateMetrics();
+            }
+        });
+
+        window.addEventListener('DOMContentLoaded', () => {
+            resizeCanvas();
+            switchModule('gravitational');
+        });
+    </script>
+
+</body>
+</html>
